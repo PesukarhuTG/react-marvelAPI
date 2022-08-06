@@ -13,12 +13,30 @@ class MarvelService {
       return await res.json();
   }
 
-  getAllCharacters = () => {
-      return this.getResource(`${this._apiBase}characters?limit=9&offset=210&${this._apiKey}`);
+  getAllCharacters = async () => {
+      const res = await this.getResource(`${this._apiBase}characters?limit=9&offset=210&${this._apiKey}`);
+      //передаем callback который каждый элемент трансформирует (берет только нужное нам)
+      return res.data.results.map(this._transformCharacter); //массив с причесаными объектами
+
   }
 
-  getCharacter = (id) => {
-      return this.getResource(`${this._apiBase}characters/${id}?${this._apiKey}`);
+  getCharacter = async (id) => {
+      const res = await this.getResource(`${this._apiBase}characters/${id}?${this._apiKey}`); //сохраняем персонажа в промеж результат
+      //в первом баннере всегда отображается первый произвольный элемент
+      return this._transformCharacter(res.data.results[0]);
+  }
+
+  // выносим логику получения данных отдельно для лаконичности
+  //будем получать данные и возвращать трансформированный объект
+  _transformCharacter = (сharacter) => {
+    return {
+      name: сharacter.name,
+      description: сharacter.description ? `${сharacter.description.slice(0, 210)}...` : 'Sorry, there is no description',
+      thumbnail: сharacter.thumbnail.path + '.' + сharacter.thumbnail.extension,
+      homepage: сharacter.urls[0].url,
+      wiki: сharacter.urls[1].url
+    }
+
   }
 }
 
