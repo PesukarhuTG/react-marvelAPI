@@ -26,19 +26,19 @@ class RandomChar extends Component {
       clearInterval(this.timerId);
     }
 
-    //метод ля установки ошибки
-    onError = () => {
-      this.setState({loading: false, error: true});
-    }
-
-    //вынесем в метод загрузку персонажа (для переиспользования)
+    //загрузка персонажа (конечный результат)
     onCharacterLoaded = (char) => {
       this.setState({char, loading: false}); //обновление
     }
 
-    //при клике на try грузился спиннер
+    //при клике на try грузился спиннер (промежуточный результат)
     onCharLoading = () => {
       this.setState({loading: true});
+    }
+
+    //метод ля установки ошибки
+    onError = () => {
+      this.setState({loading: false, error: true});
     }
 
     //метод, ктр-й получает данные и записывает в state

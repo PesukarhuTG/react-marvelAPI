@@ -28,14 +28,15 @@ class MarvelService {
 
   // выносим логику получения данных отдельно для лаконичности
   //будем получать данные и возвращать трансформированный объект
-  _transformCharacter = (сharacter) => {
+  _transformCharacter = (сhar) => {
     return {
-      id: сharacter.id,
-      name: сharacter.name,
-      description: сharacter.description ? `${сharacter.description.slice(0, 210)}...` : 'Sorry, there is no description',
-      thumbnail: сharacter.thumbnail.path + '.' + сharacter.thumbnail.extension,
-      homepage: сharacter.urls[0].url,
-      wiki: сharacter.urls[1].url
+      id: сhar.id,
+      name: сhar.name,
+      description: сhar.description ? `${сhar.description.slice(0, 210)}...` : 'Sorry, there is no description',
+      thumbnail: сhar.thumbnail.path + '.' + сhar.thumbnail.extension,
+      homepage: сhar.urls[0].url,
+      wiki: сhar.urls[1].url,
+      comics: сhar.comics.items
     }
 
   }
