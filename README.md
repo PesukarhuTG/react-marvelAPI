@@ -1,5 +1,8 @@
 # Marver Api
+
 ![marvel-rm](https://user-images.githubusercontent.com/39487464/183299785-b4cd6894-d045-48c7-8bda-cfa649756306.JPG)
+
+<h2 align="center"><a href="https://pesukarhutg.github.io/react-marvelAPI/" target="_blank">Deploy link</a></h2>
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
