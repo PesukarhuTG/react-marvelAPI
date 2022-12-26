@@ -1,7 +1,7 @@
 class MarvelService {
   _apiBase = 'https://gateway.marvel.com:443/v1/public/';
-  //_apiKey = 'apikey=c5d6fc8b83116d92ed468ce36bac6c62'; //lector
-  _apiKey = 'apikey=979d354cb4d6bb6f8c8081c6e8d9b897'; //my
+  _apiKey = 'apikey=979d354cb4d6bb6f8c8081c6e8d9b897';
+  _baseOffset = 210; // загрузка не всех персонажей а с отступом, т.к. начальные неинтересны
 
   getResource = async (url) => {
       let res = await fetch(url);
@@ -13,8 +13,8 @@ class MarvelService {
       return await res.json();
   }
 
-  getAllCharacters = async () => {
-      const res = await this.getResource(`${this._apiBase}characters?limit=9&offset=210&${this._apiKey}`);
+  getAllCharacters = async (offset = this._baseOffset) => {
+      const res = await this.getResource(`${this._apiBase}characters?limit=9&offset=${offset}&${this._apiKey}`);
       //передаем callback который каждый элемент трансформирует (берет только нужное нам)
       return res.data.results.map(this._transformCharacter); //массив с причесаными объектами
 

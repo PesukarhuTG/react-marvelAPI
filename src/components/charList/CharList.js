@@ -8,24 +8,57 @@ import './charList.scss';
 class CharList extends Component {
     state = {
       charList: [],
-      loading: true,
-      error: false
+      loading: true, // первичная загрузка элементов
+      error: false,
+      newItemloading: false, // загрузка на "load more"
+      offset: 210,
+      charEnded: false,
     }
 
     marvelService = new MarvelService();
 
     componentDidMount() {
-      this.marvelService.getAllCharacters()
+        this.onRequest();
+    }
+
+    // когда пользователь кликает на "load more"
+    onRequest = (offset) => {
+      this.onCharListLoading();
+
+      this.marvelService.getAllCharacters(offset)
           .then(this.onCharListLoaded)
           .catch(this.onError)
     }
 
-    onCharListLoaded = (charList) => {
-        this.setState({ charList, loading: false });
+    onCharListLoading = () => {
+      this.setState({
+        newItemloading: true
+      })
+    }
+
+    onCharListLoaded = (newCharList) => {
+
+      // проверка на то, что массив дозагрузки персонажей закончился
+      let ended = false;
+      if (newCharList.length < 9) {
+        ended = true;
+      }
+
+
+      this.setState(({ offset, charList}) => ({ 
+        charList: [...charList, ...newCharList], //при Load more
+        loading: false,
+        newItemloading: false,
+        offset: offset + 9,
+        charEnded: ended,
+      }));
     }
 
     onError = () => {
-        this.setState({error: true, loading: false});
+        this.setState({
+          error: true,
+          loading: false,
+        });
     }
 
       // Этот метод создан для оптимизации, 
@@ -56,7 +89,7 @@ class CharList extends Component {
   }
 
     render() {
-      const {charList, loading, error} = this.state;
+      const {charList, loading, error, offset, newItemloading, charEnded} = this.state;
       const items = this.renderItems(charList);
       const errorMessage = error ? <ErrorMessage/> : null;
       const spinner = loading ? <Spinner/> : null;
@@ -67,7 +100,11 @@ class CharList extends Component {
             {errorMessage}
             {spinner}
             {content}
-            <button className="button button__main button__long">
+            <button className="button button__main button__long"
+                    disabled={newItemloading}
+                    style={{'display': charEnded ? 'none' : ''}}
+                    onClick={() => this.onRequest(offset)}
+            >
                 <div className="inner">load more</div>
             </button>
         </div>

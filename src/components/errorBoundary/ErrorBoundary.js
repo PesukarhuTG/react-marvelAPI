@@ -7,14 +7,13 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(err, info) {
-    console.log(err, info);
     this.setState({
       error: true
     })
   }
 
   render() {
-    //если компонент отвалилсяя, отрендерим запасной вариант
+    //если компонент отвалился, отрендерим запасной вариант
     if(this.state.error) {
       return <ErrorMessage />
     }
