@@ -63,10 +63,21 @@ class CharList extends Component {
         });
     }
 
-      // Этот метод создан для оптимизации, 
-    // чтобы не помещать такую конструкцию в метод render
+    itemRefs = [];
+
+    setRef = (ref) => {
+        this.itemRefs.push(ref);
+    }
+
+    focusOnItem = (id) => {
+      this.itemRefs.forEach(item => item.classList.remove('char__item_selected'));
+      this.itemRefs[id].classList.add('char__item_selected');
+      this.itemRefs[id].focus();
+  }
+
+    // Этот метод создан для оптимизации, чтобы не помещать такую конструкцию в метод render
     renderItems(arr) {
-      const items =  arr.map((item) => {
+      const items =  arr.map((item, i) => {
           const fixPosterPath = 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
           let imgStyleFit = {'objectFit' : 'cover'};
           if (item.thumbnail === fixPosterPath) imgStyleFit = {'objectFit' : 'unset'};
@@ -75,7 +86,12 @@ class CharList extends Component {
               <li 
                   className="char__item"
                   key={item.id}
-                  onClick={() => this.props.onCharSelected(item.id)}>
+                  tabIndex={0}
+                  ref={this.setRef}
+                  onClick={() => {
+                    this.props.onCharSelected(item.id);
+                    this.focusOnItem(i);
+                    }}>
                       <img src={item.thumbnail} alt={item.name} style={imgStyleFit}/>
                       <div className="char__name">{item.name}</div>
               </li>
