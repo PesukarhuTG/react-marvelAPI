@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 import Spinner from '../spinner/Spinner';
@@ -7,38 +7,34 @@ import MarvelService from '../../services/MarvelService';
 
 import './charList.scss';
 
-class CharList extends Component {
-    state = {
-      charList: [],
-      loading: true, // первичная загрузка элементов
-      error: false,
-      newItemloading: false, // загрузка на "load more"
-      offset: 210,
-      charEnded: false,
-    }
+const CharList = (props) => {
+    const [charList, setCharList] = useState([]);
+    const [loading, setLoading] = useState(true); // первичная загрузка элементов
+    const [error, setError] = useState(false);
+    const [newItemloading, setNewItemloading] = useState(false);
+    const [offset, setOffset] = useState(210);
+    const [charEnded, setCharEnded] = useState(false);
 
-    marvelService = new MarvelService();
+    const marvelService = new MarvelService();
 
-    componentDidMount() {
-        this.onRequest();
-    }
+    useEffect(() => {
+      onRequest();
+    }, []) // eslint-disable-line
 
     // когда пользователь кликает на "load more"
-    onRequest = (offset) => {
-      this.onCharListLoading();
+    const onRequest = (offset) => {
+      onCharListLoading();
 
-      this.marvelService.getAllCharacters(offset)
-          .then(this.onCharListLoaded)
-          .catch(this.onError)
+      marvelService.getAllCharacters(offset)
+          .then(onCharListLoaded)
+          .catch(onError)
     }
 
-    onCharListLoading = () => {
-      this.setState({
-        newItemloading: true
-      })
+    const onCharListLoading = () => {
+      setNewItemloading(true);
     }
 
-    onCharListLoaded = (newCharList) => {
+    const onCharListLoaded = (newCharList) => {
 
       // проверка на то, что массив дозагрузки персонажей закончился
       let ended = false;
@@ -46,37 +42,28 @@ class CharList extends Component {
         ended = true;
       }
 
-
-      this.setState(({ offset, charList}) => ({ 
-        charList: [...charList, ...newCharList], //при Load more
-        loading: false,
-        newItemloading: false,
-        offset: offset + 9,
-        charEnded: ended,
-      }));
+      setCharList(charList => [...charList, ...newCharList]); //при Load more
+      setLoading(false);
+      setNewItemloading(newItemloading => false);
+      setOffset(offset => offset + 9);
+      setCharEnded(charEnded => ended);
     }
 
-    onError = () => {
-        this.setState({
-          error: true,
-          loading: false,
-        });
+    const onError = () => {
+      setError(true);
+      setLoading(false);
     }
 
-    itemRefs = [];
+    const itemRefs = useRef([]);
 
-    setRef = (ref) => {
-        this.itemRefs.push(ref);
+    const focusOnItem = (id) => {
+      itemRefs.current.forEach(item => item.classList.remove('char__item_selected'));
+      itemRefs.current[id].classList.add('char__item_selected');
+      itemRefs.current[id].focus();
     }
-
-    focusOnItem = (id) => {
-      this.itemRefs.forEach(item => item.classList.remove('char__item_selected'));
-      this.itemRefs[id].classList.add('char__item_selected');
-      this.itemRefs[id].focus();
-  }
 
     // Этот метод создан для оптимизации, чтобы не помещать такую конструкцию в метод render
-    renderItems(arr) {
+    function renderItems(arr) {
       const items =  arr.map((item, i) => {
           const fixPosterPath = 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
           let imgStyleFit = {'objectFit' : 'cover'};
@@ -87,11 +74,11 @@ class CharList extends Component {
                   className="char__item"
                   key={item.id}
                   tabIndex={0}
-                  ref={this.setRef}
+                  ref={el => itemRefs.current[i] = el}
                   onClick={() => {
-                    this.props.onCharSelected(item.id);
-                    this.focusOnItem(i);
-                    }}>
+                    props.onCharSelected(item.id);
+                    focusOnItem(i);
+                  }}>
                       <img src={item.thumbnail} alt={item.name} style={imgStyleFit}/>
                       <div className="char__name">{item.name}</div>
               </li>
@@ -106,28 +93,25 @@ class CharList extends Component {
       )
   }
 
-    render() {
-      const {charList, loading, error, offset, newItemloading, charEnded} = this.state;
-      const items = this.renderItems(charList);
-      const errorMessage = error ? <ErrorMessage/> : null;
-      const spinner = loading ? <Spinner/> : null;
-      const content = !(loading || error) ? items : null;
+  const items = renderItems(charList);
+  const errorMessage = error ? <ErrorMessage/> : null;
+  const spinner = loading ? <Spinner/> : null;
+  const content = !(loading || error) ? items : null;
 
-      return (
-        <div className="char__list">
-            {errorMessage}
-            {spinner}
-            {content}
-            <button className="button button__main button__long"
-                    disabled={newItemloading}
-                    style={{'display': charEnded ? 'none' : ''}}
-                    onClick={() => this.onRequest(offset)}
-            >
-                <div className="inner">load more</div>
-            </button>
-        </div>
-      )
-    }
+  return (
+    <div className="char__list">
+        {errorMessage}
+        {spinner}
+        {content}
+        <button className="button button__main button__long"
+            disabled={newItemloading}
+            style={{'display': charEnded ? 'none' : ''}}
+            onClick={() => onRequest(offset)}
+        >
+          <div className="inner">load more</div>
+        </button>
+    </div>
+  )
 }
 
 CharList.propTypes = {

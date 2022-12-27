@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 import ErrorMessage from '../errorMessage/ErrorMessage';
@@ -7,76 +7,65 @@ import Skeleton from '../skeleton/Skeleton';
 import MarvelService from '../../services/MarvelService';
 import './charInfo.scss';
 
-class CharInfo extends Component {
-    state = {
-      char: null,
-      loading: false,
-      error: false
-    }
+const CharInfo = (props) => {
+    const [char, setChar] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
 
-    marvelService = new MarvelService();
+    const marvelService = new MarvelService();
 
-    //хук, когда компонент отрендерился
-    componentDidMount() {
-      this.updateChar(); //...запускаем обновление
-    }
+    useEffect(() => {
+      updateChar(); //...запускаем обновление
+    }, [props.charId]) // eslint-disable-line
 
-    componentDidUpdate(prevProps) {
-      //если новые id не равны прошлым
-      if (this.props.charId !== prevProps.charId) {
-        this.updateChar();
-      }
-    }
-
-    updateChar = () => {
-      const {charId} = this.props;
+    const updateChar = () => {
+      const {charId} = props;
       //если id не передан (в начале), то заглушка skeleton сработает
       if (!charId) return;
 
-      this.onCharLoading(); //перед запросом показывается спиннер
+      onCharLoading(); //перед запросом показывается спиннер
 
       //если же id есть, то делаем запрос на сервер
-      this.marvelService
+      marvelService
           .getCharacter(charId) // 1) когда придет ответ от API в формате 1 объекта...
-          .then(this.onCharacterLoaded) // 2) ...он попадет в onCharacterLoaded
-          .catch(this.onError)
+          .then(onCharacterLoaded) // 2) ...он попадет в onCharacterLoaded
+          .catch(onError)
     }
 
     //загрузка персонажа (конечный результат)
-    onCharacterLoaded = (char) => {
-      this.setState({char, loading: false}); // 3) ...и запишется в наше состояние
+    const onCharacterLoaded = (char) => {
+      // 3) ...и запишется в наше состояние
+      setLoading(false);
+      setChar(char);
     }
 
     //при клике на try грузился спиннер (промежуточный результат)
-    onCharLoading = () => {
-      this.setState({loading: true});
+    const onCharLoading = () => {
+      setLoading(true);
     }
 
     //метод ля установки ошибки
-    onError = () => {
-      this.setState({loading: false, error: true});
+    const onError = () => {
+      setError(true);
+      setLoading(false);
     }
 
-    render() {
-      const { char, loading, error } = this.state;
+    //начальное состояние: если у нас не загружен персонаж, не загрузка, не ошибка, то скелетон
+    const skeleton = char || loading || error ? null : <Skeleton />;
 
-      //начальное состояние: если у нас не загружен персонаж, не загрузка, не ошибка, то скелетон
-      const skeleton = char || loading || error ? null : <Skeleton />;
+    const errorMessage = error ? <ErrorMessage /> : null;
+    const spinner = loading ? <Spinner /> : null;
+    const content = !(loading || error || !char) ? <View char={char} /> : null;
 
-      const errorMessage = error ? <ErrorMessage /> : null;
-      const spinner = loading ? <Spinner /> : null;
-      const content = !(loading || error || !char) ? <View char={char} /> : null;
-
-      // благодаря условиям отобразится только один из компонентов в зависимости от state
-      return (
-        <div className="char__info">
-            {skeleton}
-            {errorMessage}
-            {spinner}
-            {content}
-        </div>
-    )
-    }
+    // благодаря условиям отобразится только один из компонентов в зависимости от state
+    return (
+      <div className="char__info">
+          {skeleton}
+          {errorMessage}
+          {spinner}
+          {content}
+      </div>
+  )
 }
 
 const View = ({char}) => {
