@@ -4,15 +4,12 @@ import PropTypes from 'prop-types';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Spinner from '../spinner/Spinner';
 import Skeleton from '../skeleton/Skeleton';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import './charInfo.scss';
 
 const CharInfo = (props) => {
     const [char, setChar] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
-
-    const marvelService = new MarvelService();
+    const {loading, error, getCharacter, clearError} = useMarvelService();
 
     useEffect(() => {
       updateChar(); //...запускаем обновление
@@ -23,31 +20,16 @@ const CharInfo = (props) => {
       //если id не передан (в начале), то заглушка skeleton сработает
       if (!charId) return;
 
-      onCharLoading(); //перед запросом показывается спиннер
+      clearError();
 
       //если же id есть, то делаем запрос на сервер
-      marvelService
-          .getCharacter(charId) // 1) когда придет ответ от API в формате 1 объекта...
+      getCharacter(charId) // 1) когда придет ответ от API в формате 1 объекта...
           .then(onCharacterLoaded) // 2) ...он попадет в onCharacterLoaded
-          .catch(onError)
     }
 
     //загрузка персонажа (конечный результат)
     const onCharacterLoaded = (char) => {
-      // 3) ...и запишется в наше состояние
-      setLoading(false);
-      setChar(char);
-    }
-
-    //при клике на try грузился спиннер (промежуточный результат)
-    const onCharLoading = () => {
-      setLoading(true);
-    }
-
-    //метод ля установки ошибки
-    const onError = () => {
-      setError(true);
-      setLoading(false);
+      setChar(char); // 3) ...и запишется в наше состояние
     }
 
     //начальное состояние: если у нас не загружен персонаж, не загрузка, не ошибка, то скелетон

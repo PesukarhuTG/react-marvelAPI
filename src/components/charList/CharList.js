@@ -3,39 +3,30 @@ import PropTypes from 'prop-types';
 
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 
 import './charList.scss';
 
 const CharList = (props) => {
     const [charList, setCharList] = useState([]);
-    const [loading, setLoading] = useState(true); // первичная загрузка элементов
-    const [error, setError] = useState(false);
     const [newItemloading, setNewItemloading] = useState(false);
     const [offset, setOffset] = useState(210);
     const [charEnded, setCharEnded] = useState(false);
 
-    const marvelService = new MarvelService();
+    const {loading, error, getAllCharacters } = useMarvelService();
 
     useEffect(() => {
-      onRequest();
+      onRequest(offset, true);
     }, []) // eslint-disable-line
 
     // когда пользователь кликает на "load more"
-    const onRequest = (offset) => {
-      onCharListLoading();
-
-      marvelService.getAllCharacters(offset)
+    const onRequest = (offset, initial) => {
+      initial ? setNewItemloading(false) : setNewItemloading(true);
+      getAllCharacters(offset)
           .then(onCharListLoaded)
-          .catch(onError)
-    }
-
-    const onCharListLoading = () => {
-      setNewItemloading(true);
     }
 
     const onCharListLoaded = (newCharList) => {
-
       // проверка на то, что массив дозагрузки персонажей закончился
       let ended = false;
       if (newCharList.length < 9) {
@@ -43,15 +34,9 @@ const CharList = (props) => {
       }
 
       setCharList(charList => [...charList, ...newCharList]); //при Load more
-      setLoading(false);
       setNewItemloading(newItemloading => false);
       setOffset(offset => offset + 9);
       setCharEnded(charEnded => ended);
-    }
-
-    const onError = () => {
-      setError(true);
-      setLoading(false);
     }
 
     const itemRefs = useRef([]);
@@ -95,14 +80,13 @@ const CharList = (props) => {
 
   const items = renderItems(charList);
   const errorMessage = error ? <ErrorMessage/> : null;
-  const spinner = loading ? <Spinner/> : null;
-  const content = !(loading || error) ? items : null;
+  const spinner = loading && !newItemloading ? <Spinner/> : null; //загрузка, но не загрузка новых персонажей
 
   return (
     <div className="char__list">
         {errorMessage}
         {spinner}
-        {content}
+        {items}
         <button className="button button__main button__long"
             disabled={newItemloading}
             style={{'display': charEnded ? 'none' : ''}}
